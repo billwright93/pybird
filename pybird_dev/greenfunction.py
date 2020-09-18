@@ -6,15 +6,19 @@ from scipy.integrate import odeint
 
 class GreenFunction(object):
 
-    def __init__(self, Omega0_m, w=None, quintessence=False):
+    def __init__(self, Omega0_m, w=None, quintessence=False, Omega_rc=None, MG=False):
         self.Omega0_m = Omega0_m
         self.OmegaL_by_Omega_m = (1.-self.Omega0_m)/self.Omega0_m
         self.wcdm = False
         self.quintessence = False
+        self.MG = False
         if w is not None:
             self.w = w
             if quintessence: self.quintessence = True
             else: self.wcdm = True
+        if Omega_rc is not None: #should be elif since don't want both wcDM and nDGP?
+            self.Omega_rc = Omega_rc
+            self.MG = True
 
         self.epsrel = 1e-4
 
