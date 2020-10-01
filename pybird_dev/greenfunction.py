@@ -37,23 +37,46 @@ class GreenFunction(object):
     def Omega_m(self, a):
         return self.Omega0_m / (self.H(a)**2 * a)
 
+    def H_NC(self, a):
+        """Non-Conformal Hubble, H0=1"""
+        #if self.nDGP: return np.sqrt(Omega0_m/a/a/a + ((1.-Omega0_m)+ 2.*Omega_rc*(np.sqrt((Omega0_m/a/a/a)/Omega_rc + 1.) - 1.)) + Omega_rc) - np.sqrt(Omega_rc) #nDGP+DE
+        #else: return (Omega0_m/a/a/a + (1.-Omega0_m))**0.5 #LCDM
+        return (self.Omega0_m/a/a/a + (1.-self.Omega0_m))**0.5 #expansion fixed to LCDM
+
+    def dHda_NC(self, a):
+        """Derivative of non-Conformal Hubble w.r.t. a, H0=1"""
+        #if self.nDGP: return (-3.*a**(-1. - 3.*(1 + w))*(1 + w)*(1.-Omega0_m) - 3*Omega0_m*a**(-4))/(2.*np.sqrt((1.-Omega0_m)*a**(-3*(1 + w)) + Omega0_m*a**(-3) + Omega_rc)) #nDGP+DE
+        #else: return 0.5*(-3.*Omega0_m/a/a/a/a)*(Omega0_m/a/a/a + (1.-Omega0_m))**(-0.5) #LCDM
+        return 0.5*(-3.*self.Omega0_m/a/a/a/a)*(self.Omega0_m/a/a/a + (1.-self.Omega0_m))**(-0.5) #expansion fixed to LCDM
+
+    def beta(self, a):
+        if self.nDGP: return 1. + self.H_NC(a)*(1.+a*self.dHda_NC(a)/3./self.H_NC(a))/np.sqrt(self.Omega_rc)
+        else: return 1.
+
+    def mu(self, a):
+        if self.nDGP: return 1.+1./(3.*self.beta(a))
+        else: return 1.
+
+    def mu2(self, a):
+        if self.nDGP: return -0.5*self.H_NC(a)**2.*(1./(3.*self.beta(a)))**3./self.Omega_rc
+        else: return 0. #think limit here is 0 not 1?
+
+    def mu22(self, a):
+        if self.nDGP: return 0.5*self.H_NC(a)**4.*(1./(3.*self.beta(a)))**5./self.Omega_rc/self.Omega_rc
+        else: return 0. #think limit here is 0 not 1?
 
     #######################################################
     ###### Functions to compute MG growth internally ######
     # How to make these self.func form with odeint(func)? #
     #######################################################
 
-    def HA1(a, Omega0_m):
-        """a*H*dH/da = dH/dt"""
-        return -3.*Omega0_m/(2.*a**3.)
-
-    def H_NC(a, Omega0_m):
+    def nDGP_H_NC(a, Omega0_m):
         """Non-Conformal Hubble, H0=1"""
         #if self.MG: return np.sqrt(Omega0_m/a/a/a + ((1.-Omega0_m)+ 2.*Omega_rc*(np.sqrt((Omega0_m/a/a/a)/Omega_rc + 1.) - 1.)) + Omega_rc) - np.sqrt(Omega_rc) #nDGP+DE
         #else: return (Omega0_m/a/a/a + (1.-Omega0_m))**0.5 #LCDM
         return (Omega0_m/a/a/a + (1.-Omega0_m))**0.5 #expansion fixed to LCDM
 
-    def dHda_NC(a, Omega0_m):
+    def nDGP_dHda_NC(a, Omega0_m):
         """Derivative of non-Conformal Hubble w.r.t. a, H0=1"""
         #if self.MG: return (-3.*a**(-1. - 3.*(1 + w))*(1 + w)*(1.-Omega0_m) - 3*Omega0_m*a**(-4))/(2.*np.sqrt((1.-Omega0_m)*a**(-3*(1 + w)) + Omega0_m*a**(-3) + Omega_rc)) #nDGP+DE
         #else: return 0.5*(-3.*Omega0_m/a/a/a/a)*(Omega0_m/a/a/a + (1.-Omega0_m))**(-0.5) #LCDM
@@ -61,7 +84,7 @@ class GreenFunction(object):
 
     def nDGP_beta(a, Omega0_m, Omega_rc):
         """beta function for nDGP""" # Omega_rc as described in 1606.02520 for example
-    	return 1. + H_NC(a, Omega0_m)/np.sqrt(Omega_rc)*(1.+HA1(a, Omega0_m)/(3.*H_NC(a, Omega0_m)*H_NC(a, Omega0_m)))
+    	return 1. + nDGP_H_NC(a, Omega0_m)*(1.+a*nDGP_dHda_NC(a, Omega0_m)/3./nDGP_H_NC(a, Omega0_m))/np.sqrt(Omega_rc)
 
     def mu_MG(a, Omega0_m, Omega_rc):
         #return 1. #GR
