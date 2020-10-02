@@ -209,42 +209,42 @@ class GreenFunction(object):
 
     # third order coefficients
     def IU1d(self, ai, a):
-        if self.MG: return (self.G1d(a,ai)*self.fplus(ai)*self.mG1d_MG(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d_MG(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return (self.G1d(a,ai)*self.fplus(ai)*self.mG1d(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG1d(ai)*self.G1d(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IU2d(self, ai, a):
-        if self.MG: return ( self.G1d(a,ai)*self.fplus(ai)*self.mG2d_MG(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*( self.mu2(ai)*self.mG2d(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai) )/self.fplus(ai) )*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return ( self.G1d(a,ai)*self.fplus(ai)*self.mG2d(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*( self.mu2(ai)*self.mG2d(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai) )/self.fplus(ai) )*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG2d(ai)*self.G1d(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IU1t(self, ai, a):
-        if self.MG: return (self.G1t(a,ai)*self.fplus(ai)*self.mG1d_MG(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d_MG(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return (self.G1t(a,ai)*self.fplus(ai)*self.mG1d(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG1d(ai)*self.G1t(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IU2t(self, ai, a):
-        if self.MG: return ( self.G1t(a,ai)*self.fplus(ai)*self.mG2d_MG(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*( self.mu2(ai)*self.mG2d_MG(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai) )/self.fplus(ai) )*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return ( self.G1t(a,ai)*self.fplus(ai)*self.mG2d(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*( self.mu2(ai)*self.mG2d(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai) )/self.fplus(ai) )*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG2d(ai)*self.G1t(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
 
     def IV11d(self, ai, a):
-        if self.MG: return (self.G1d(a,ai)*self.fplus(ai)*self.mG1t_MG(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d_MG(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return (self.G1d(a,ai)*self.fplus(ai)*self.mG1t(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG1t(ai)*self.G1d(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IV12d(self, ai, a):
-        if self.MG: return self.G2d(a,ai)*(self.fplus(ai)*self.mG1t_MG(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d_MG(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return self.G2d(a,ai)*(self.fplus(ai)*self.mG1t(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG1t(ai)*self.G2d(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IV21d(self, ai, a):
-        if self.MG: return (self.G1d(a,ai)*self.fplus(ai)*self.mG2t_MG(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d_MG(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return (self.G1d(a,ai)*self.fplus(ai)*self.mG2t(ai) + self.G2d(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG2t(ai)*self.G1d(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IV22d(self, ai, a):
-        if self.MG: return self.G2d(a,ai)*(self.fplus(ai)*self.mG2t_MG(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d_MG(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return self.G2d(a,ai)*(self.fplus(ai)*self.mG2t(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG2t(ai)*self.G2d(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
 
     def IV11t(self, ai,a):
-        if self.MG: return (self.G1t(a,ai)*self.fplus(ai)*self.mG1t_MG(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d_MG(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return (self.G1t(a,ai)*self.fplus(ai)*self.mG1t(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG1t(ai)*self.G1t(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IV12t(self, ai,a):
-        if self.MG: return self.G2t(a,ai)*(self.fplus(ai)*self.mG1t_MG(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d_MG(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return self.G2t(a,ai)*(self.fplus(ai)*self.mG1t(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG1d(ai) + 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG1t(ai)*self.G2t(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IV21t(self, ai,a):
-        if self.MG: return (self.G1t(a,ai)*self.fplus(ai)*self.mG2t_MG(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d_MG(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return (self.G1t(a,ai)*self.fplus(ai)*self.mG2t(ai) + self.G2t(a,ai)*(1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG2t(ai)*self.G1t(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
     def IV22t(self, ai,a):
-        if self.MG: return self.G2t(a,ai)*(self.fplus(ai)*self.mG2t_MG(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d_MG(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
+        if self.MG: return self.G2t(a,ai)*(self.fplus(ai)*self.mG2t(ai) - (1.5*self.Omega_m(ai))**2*(self.mu2(ai)*self.mG2d(ai) - 0.5*self.mu22(ai)*1.5*self.Omega_m(ai))/self.fplus(ai))*(self.D(ai)/self.D(a))**3 / self.C(a)
         else: return self.fplus(ai)*self.mG2t(ai)*self.G2t(a,ai)*(self.D(ai)/self.D(a))**3 / self.C(a)
 
     # third order time integrals
