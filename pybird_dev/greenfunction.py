@@ -59,11 +59,11 @@ class GreenFunction(object):
 
     def mu2(self, a):
         if self.nDGP: return -0.5*self.H_NC(a)**2.*(1./(3.*self.beta(a)))**3./self.Omega_rc
-        else: return 0. #think limit here is 0 not 1?
+        else: return 0.
 
     def mu22(self, a):
         if self.nDGP: return 0.5*self.H_NC(a)**4.*(1./(3.*self.beta(a)))**5./self.Omega_rc/self.Omega_rc
-        else: return 0. #think limit here is 0 not 1?
+        else: return 0.
 
     #######################################################
     ###### Functions to compute MG growth internally ######
