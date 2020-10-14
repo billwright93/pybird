@@ -19,15 +19,15 @@ sbird = np.array([1.000e+00, 1.124e+00, 1.264e+00, 1.421e+00, 1.597e+00, 1.796e+
 class Common(object):
     """
     A class to share data among different objects
-    
+
     Attributes
     ----------
     Nl : int
         The maximum multipole to calculate (default 2)
     """
 
-    def __init__(self, Nl=2, kmin=0.001, kmax=0.25, km=1., nd=3e-4, halohalo=True, with_cf=False, with_time=True, accboost=1., optiresum=False, orderresum=16, exact_time=False, quintessence=False, angular=False):
-        
+    def __init__(self, Nl=2, kmin=0.001, kmax=0.25, km=1., nd=3e-4, halohalo=True, with_cf=False, with_time=True, accboost=1., optiresum=False, orderresum=16, exact_time=False, quintessence=False, MG=False, Omega_rc=None, nDGP=False, angular=False):
+
         self.halohalo = halohalo
         self.nd = nd
         self.km = km
@@ -37,11 +37,19 @@ class Common(object):
         self.with_time = with_time
         self.exact_time = exact_time
         self.quintessence = quintessence
+        self.Omega_rc = Omega_rc
         if self.quintessence: self.exact_time = True
+        self.MG = MG
+        if self.MG: self.exact_time = True
+        self.nDGP = nDGP
+        #print('nDGP co:', nDGP)
+        if self.nDGP:
+            self.exact_time = True #needed?
+            self.MG = True
 
         self.angular = angular
 
-        if self.angular: 
+        if self.angular:
             self.Ng = 3
             rlog = np.geomspace(0.01, 1000., 100) ### Do not change the min max ; the damping windows in the FFTLog of the IR-corrections are depending on those
             rlin = np.arange(1./accboost, 200., 1./accboost)
@@ -51,11 +59,11 @@ class Common(object):
 
         if Nl is 0: self.Nl = 1
         elif Nl > 0: self.Nl = Nl
-        
+
         self.Nst = 3  # number of stochastic terms
 
         if self.halohalo:
-            
+
             self.N11 = 3  # number of linear terms
             self.Nct = 6  # number of counterterms
 
@@ -65,9 +73,9 @@ class Common(object):
             else:
                 self.N22 = 28  # number of 22-loops
                 self.N13 = 10  # number of 13-loops
-            
+
             if self.with_time: self.Nloop = 12 # giving f (and other time functions e.g. Y if != EdS)
-            else: 
+            else:
                 if self.exact_time or self.quintessence: self.Nloop = 35 # giving nothing but more terms than in EdS
                 else: self.Nloop = 22          # giving nothing (this is EdS)
             #elif self.redshift is 'geom': self.Nloop = self.N13+self.N22
@@ -94,7 +102,7 @@ class Common(object):
             if self.optiresum is True: self.s = np.arange(40., 200., 1./accboost)
             else: self.s = sbird
         self.Ns = self.s.shape[0]
-        
+
         if kmax is not None:
             self.kmin = kmin # no support for kmin: keep default
             self.kmax = kmax
@@ -112,7 +120,7 @@ class Common(object):
         if self.with_cf: self.NIR = 20
         elif self.Nl is 3 or self.kmax > 0.25: self.NIR = 16
         else: self.NIR = 8
-        
+
         if self.NIR is 16: self.Na = 3
         elif self.NIR is 20: self.Na = 3
         elif self.NIR is 8: self.Na = 2
@@ -123,19 +131,19 @@ class Common(object):
         self.lct = np.empty(shape=(self.Nl, self.Nct))
         self.l22 = np.empty(shape=(self.Nl, self.N22))
         self.l13 = np.empty(shape=(self.Nl, self.N13))
-        
+
         for i in range(self.Nl):
             l = 2 * i
             if self.halohalo:
                 self.l11[i] = np.array([mu[0][l], mu[2][l], mu[4][l]])
                 self.lct[i] = np.array([mu[0][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[6][l]])
                 if self.exact_time or self.quintessence:
-                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]] 
-                        + 3 * [mu[4][l]] + [mu[6][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[8][l]] 
+                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]]
+                        + 3 * [mu[4][l]] + [mu[6][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[8][l]]
                         + 3 * [mu[2][l]] + 3 * [mu[4][l]] + [mu[6][l], mu[4][l]] ])
                     self.l13[i] = np.array([ 2 * [mu[0][l]] + 2 * [mu[2][l]] + [mu[4][l], mu[0][l], mu[2][l], mu[4][l], mu[2][l], mu[2][l], mu[4][l], mu[4][l], mu[6][l], mu[2][l], mu[4][l]] ])
                 else:
-                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]] 
+                    self.l22[i] = np.array([ 6 * [mu[0][l]] + 7 * [mu[2][l]] + [mu[4][l], mu[2][l], mu[4][l], mu[2][l], mu[4][l], mu[2][l]]
                         + 3 * [mu[4][l]] + [mu[6][l], mu[4][l], mu[6][l], mu[4][l], mu[6][l], mu[8][l]] ])
                     self.l13[i] = np.array([2 * [mu[0][l]] + 4 * [mu[2][l]] + 3 * [mu[4][l]] + [mu[6][l]]])
             else: # halo-matter

@@ -6,19 +6,44 @@ from scipy.integrate import odeint
 
 class GreenFunction(object):
 
-    def __init__(self, Omega0_m, w=None, quintessence=False, Omega_rc=None, MG=False):
+    def __init__(self, Omega0_m, w=None, quintessence=False, MG=False, Omega_rc=None, nDGP=False):
+        #print(quintessence, MG, nDGP)
         self.Omega0_m = Omega0_m
         self.OmegaL_by_Omega_m = (1.-self.Omega0_m)/self.Omega0_m
         self.wcdm = False
         self.quintessence = False
         self.MG = False
+        self.nDGP = False
+        #print('Om_rc:', Omega_rc)
         if w is not None:
             self.w = w
             if quintessence: self.quintessence = True
             else: self.wcdm = True
         if Omega_rc is not None: #should be elif since don't want both wcDM and nDGP?
+            #print('Omega_rc specified, turning on nDGP if you have not done so already!')
             self.Omega_rc = Omega_rc
-            self.MG = True
+            if MG:
+                if nDGP: print('Omega_rc specified, nDGP and MG selected -- good job!')
+                else: print('Omega_rc specified and MG selected, but nDGP not selected -- uh oh!\nTurning on nDGP automatically.')
+            else:
+                if nDGP: print('Omega_rc specified and nDGP selected, but MG not selected -- uh oh!\nTurning on MG automatically.')
+                else: print('Omega_rc specified, but neither nDGP and MG selected -- not good!\nTurning on both MG and nDGP automatically.')
+            self.nDGP = True
+            self.MG = True #needed?
+        else:
+            if MG:
+                print('nDGP GF:', nDGP)
+                if nDGP: print('nDGP and MG selected, but Omega_rc not specified -- not good!')
+                else: print('MG selected, but nDGP not selected and Omega_rc not specified -- currently nDGP is the only MG model in PyBird!')
+            else:
+                if nDGP: print('nDGP selected, but MG not selected and Omega_rc not specified -- uh oh!')
+                else: print('No modified gravity stuff specified or selected -- that is fine!')
+        '''elif Omega_rc is None and nDGP==True:
+            print('nDGP selected but Omega_rc not specified!\nTurning off MG and nDGP.')
+            self.MG = False
+            self.nDGP = False
+        elif Omega_rc is not None and MG==True and nDGP==False:
+            print('nDGP selected but Omega_rc not specified!')'''
 
         self.epsrel = 1e-4
 
@@ -84,7 +109,7 @@ class GreenFunction(object):
 
     def nDGP_beta(a, Omega0_m, Omega_rc):
         """beta function for nDGP""" # Omega_rc as described in 1606.02520 for example
-    	return 1. + nDGP_H_NC(a, Omega0_m)*(1.+a*nDGP_dHda_NC(a, Omega0_m)/3./nDGP_H_NC(a, Omega0_m))/np.sqrt(Omega_rc)
+        return 1. + nDGP_H_NC(a, Omega0_m)*(1.+a*nDGP_dHda_NC(a, Omega0_m)/3./nDGP_H_NC(a, Omega0_m))/np.sqrt(Omega_rc)
 
     def mu_MG(a, Omega0_m, Omega_rc):
         #return 1. #GR
@@ -110,6 +135,7 @@ class GreenFunction(object):
         ans = odeint(compute_primes_MG, Y_ini_growth, a_arr, args=(self.Omega0_m, self.Omega_rc))
         D_growth = ans[-1,0]
         DD_growth = ans[-1,1]
+        #print(self.Omega_rc)
         return D_growth, DD_growth
 
     def D_DD_minus_MG_num(self, a):
@@ -203,7 +229,7 @@ class GreenFunction(object):
     def mG2t(self, a):
         return quad(self.I2t,0,a,args=(a,), epsrel=self.epsrel)[0]
 
-    # quintessence time function
+    # quintessence/MG time function
     def G(self, a):
         return self.mG1d(a) + self.mG2d(a)
 
