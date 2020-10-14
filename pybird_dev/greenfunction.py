@@ -177,13 +177,13 @@ class GreenFunction(object):
 
     def Dminus(self, a):
         """Decay factor"""
-        if self.MG: return D_DD_minus_MG_num(a, self.Omega0_m, self.Omega_rc)[0]
+        if self.MG: return self.D_DD_minus_MG_num(a)[0] #D_DD_minus_MG_num(a, self.Omega0_m, self.Omega_rc)[0]
         elif self.wcdm: return a**(-3/2.)*hyp2f1(1/(2.*self.w),(1/2.)+(1/(3.*self.w)),1+(5/(6.*self.w)),-(a**(-3.*self.w))*self.OmegaL_by_Omega_m)
         else: return self.H(a) / (a*self.Omega0_m**.5)
 
     def DDminus(self, a):
         """Derivative of decay factor"""
-        if self.MG: return D_DD_minus_MG_num(a, self.Omega0_m, self.Omega_rc)[1]
+        if self.MG: return self.D_DD_minus_MG_num(a)[1] #D_DD_minus_MG_num(a, self.Omega0_m, self.Omega_rc)[1]
         elif self.wcdm: return ((-1+3.*self.w)*hyp2f1(0.5+1/(3.*self.w),1/(2.*self.w),1+5/(6.*self.w),-(a**(-3.*self.w))*(self.OmegaL_by_Omega_m))-(2+3.*self.w)*hyp2f1(1.5+1/(3.*self.w),1/(2.*self.w),1+5/(6.*self.w),-(a**(-3.*self.w))*(self.OmegaL_by_Omega_m)))/(2*(a**(5/2.)))
         else: return -1.5 * self.Omega_m(a) * self.Dminus(a) / a * self.C(a)
 
