@@ -90,38 +90,10 @@ class GreenFunction(object):
         if self.nDGP: return 0.5*self.H_NC(a)**4.*(1./(3.*self.beta(a)))**5./self.Omega_rc/self.Omega_rc
         else: return 0.
 
-    #######################################################
-    ###### Functions to compute MG growth internally ######
-    # How to make these self.func form with odeint(func)? #
-    #######################################################
-
-    def nDGP_H_NC(a, Omega0_m):
-        """Non-Conformal Hubble, H0=1"""
-        #if self.MG: return np.sqrt(Omega0_m/a/a/a + ((1.-Omega0_m)+ 2.*Omega_rc*(np.sqrt((Omega0_m/a/a/a)/Omega_rc + 1.) - 1.)) + Omega_rc) - np.sqrt(Omega_rc) #nDGP+DE
-        #else: return (Omega0_m/a/a/a + (1.-Omega0_m))**0.5 #LCDM
-        return (Omega0_m/a/a/a + (1.-Omega0_m))**0.5 #expansion fixed to LCDM
-
-    def nDGP_dHda_NC(a, Omega0_m):
-        """Derivative of non-Conformal Hubble w.r.t. a, H0=1"""
-        #if self.MG: return (-3.*a**(-1. - 3.*(1 + w))*(1 + w)*(1.-Omega0_m) - 3*Omega0_m*a**(-4))/(2.*np.sqrt((1.-Omega0_m)*a**(-3*(1 + w)) + Omega0_m*a**(-3) + Omega_rc)) #nDGP+DE
-        #else: return 0.5*(-3.*Omega0_m/a/a/a/a)*(Omega0_m/a/a/a + (1.-Omega0_m))**(-0.5) #LCDM
-        return 0.5*(-3.*Omega0_m/a/a/a/a)*(Omega0_m/a/a/a + (1.-Omega0_m))**(-0.5) #expansion fixed to LCDM
-
-    def nDGP_beta(a, Omega0_m, Omega_rc):
-        """beta function for nDGP""" # Omega_rc as described in 1606.02520 for example
-        return 1. + nDGP_H_NC(a, Omega0_m)*(1.+a*nDGP_dHda_NC(a, Omega0_m)/3./nDGP_H_NC(a, Omega0_m))/np.sqrt(Omega_rc)
-
-    def mu_MG(a, Omega0_m, Omega_rc):
-        #return 1. #GR
-        return 1.+1./(3.*nDGP_beta(a, Omega0_m, Omega_rc)) #nDGP
-        #var1 = (k0/a)**2.
-        #return 1. + var1/(3.*(var1+pow3(omega0/pow3(a)-4.*(omega0-1.))/(2.*p1/pow2(h0)*pow2(4.-3.*omega0)))) #f(R) Hu- Sawicki
-
-    # how to make this use self?
-    def compute_primes_MG(Y, a, Omega0_m, Omega_rc):
+    def compute_primes_MG(self, Y, a):
         """Second order differential equation for growth factor D extended from Eq.(A.1) of 2005.04805"""
         D, DD = Y
-        DDD = (-a*DD - (2.+a*dHda_NC(a, Omega0_m)/H_NC(a, Omega0_m))*a*DD + 1.5*mu_MG(a, Omega0_m, Omega_rc)*Omega_m(a, Omega0_m)*D)/a/a
+        DDD = (-a*DD - (2.+a*self.dHda_NC(a)/self.H_NC(a))*a*DD + 1.5*self.mu(a)*self.Omega_m(a)*D)/a/a
         return [DD, DDD]
 
     def D_DD_MG_num(self, a):
@@ -132,7 +104,7 @@ class GreenFunction(object):
         a_points = 100
         a_arr = np.linspace(a_ini, a, a_points)
         Y_ini_growth = [D_ini_growth, DD_ini_growth]
-        ans = odeint(compute_primes_MG, Y_ini_growth, a_arr, args=(self.Omega0_m, self.Omega_rc))
+        ans = odeint(self.compute_primes_MG, Y_ini_growth, a_arr)
         D_growth = ans[-1,0]
         DD_growth = ans[-1,1]
         #print(self.Omega_rc)
@@ -141,21 +113,15 @@ class GreenFunction(object):
     def D_DD_minus_MG_num(self, a):
         """Solve for decay mode"""
         a_ini = 1e-2
-        #print(Omega_m_LCDM(a_ini, Omega0_m))
         D_ini_decay = a_ini**(-1.5)
         DD_ini_decay = -1.5*a_ini**(-2.5)
         a_points = 100
         a_arr = np.linspace(a_ini, a, a_points)
         Y_ini_decay = [D_ini_decay, DD_ini_decay]
-        ans = odeint(compute_primes_MG, Y_ini_decay, a_arr, args=(self.Omega0_m, self.Omega_rc))
+        ans = odeint(self.compute_primes_MG, Y_ini_decay, a_arr)
         D_decay = ans[-1,0]
         DD_decay = ans[-1,1]
         return D_decay, DD_decay
-
-    ####################################
-    # Back to general PyBird equations #
-    ####################################
-
 
     def D(self, a):
         """Growth factor"""
@@ -177,13 +143,13 @@ class GreenFunction(object):
 
     def Dminus(self, a):
         """Decay factor"""
-        if self.MG: return self.D_DD_minus_MG_num(a)[0] #D_DD_minus_MG_num(a, self.Omega0_m, self.Omega_rc)[0]
+        if self.MG: return self.D_DD_minus_MG_num(a)[0]
         elif self.wcdm: return a**(-3/2.)*hyp2f1(1/(2.*self.w),(1/2.)+(1/(3.*self.w)),1+(5/(6.*self.w)),-(a**(-3.*self.w))*self.OmegaL_by_Omega_m)
         else: return self.H(a) / (a*self.Omega0_m**.5)
 
     def DDminus(self, a):
         """Derivative of decay factor"""
-        if self.MG: return self.D_DD_minus_MG_num(a)[1] #D_DD_minus_MG_num(a, self.Omega0_m, self.Omega_rc)[1]
+        if self.MG: return self.D_DD_minus_MG_num(a)[1]
         elif self.wcdm: return ((-1+3.*self.w)*hyp2f1(0.5+1/(3.*self.w),1/(2.*self.w),1+5/(6.*self.w),-(a**(-3.*self.w))*(self.OmegaL_by_Omega_m))-(2+3.*self.w)*hyp2f1(1.5+1/(3.*self.w),1/(2.*self.w),1+5/(6.*self.w),-(a**(-3.*self.w))*(self.OmegaL_by_Omega_m)))/(2*(a**(5/2.)))
         else: return -1.5 * self.Omega_m(a) * self.Dminus(a) / a * self.C(a)
 
@@ -207,13 +173,13 @@ class GreenFunction(object):
 
     # second order coefficients
     def I1d(self, ai, a):
-        if self.MG: return (self.G1d(a,ai)*self.fplus(ai) + G2d(a,ai)*self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a)
+        if self.MG: return (self.G1d(a,ai)*self.fplus(ai) + self.G2d(a,ai)*self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a)
         else: return self.fplus(ai)*self.D(ai)**2*self.G1d(a,ai)/self.D(a)**2 / self.C(a)
     def I2d(self, ai, a):
         if self.MG: return self.G2d(a,ai)*(self.fplus(ai) - self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a)
         else: return self.fplus(ai)*self.D(ai)**2*self.G2d(a,ai)/self.D(a)**2 / self.C(a)
     def I1t(self, ai, a):
-        if self.MG: return (self.G1t(a,ai)*self.fplus(ai) + G2t(a,ai)*self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a)
+        if self.MG: return (self.G1t(a,ai)*self.fplus(ai) + self.G2t(a,ai)*self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a)
         else: return self.fplus(ai)*self.D(ai)**2*self.G1t(a,ai)/self.D(a)**2 / self.C(a)
     def I2t(self, ai, a):
         if self.MG: return self.G2t(a,ai)*(self.fplus(ai) - self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a)
