@@ -98,10 +98,12 @@ class GreenFunction(object):
 
     def D_DD_MG_num(self, a):
         """Solve for growth mode"""
-        a_ini = 1e-2
+        a_ini = 1e-7
+        if a < a_ini:
+            print('Need to decrease a_ini from ', a_ini, ' to below ', a)
         D_ini_growth = a_ini
         DD_ini_growth = 1.
-        a_points = 100
+        a_points = 2 #100
         a_arr = np.linspace(a_ini, a, a_points)
         Y_ini_growth = [D_ini_growth, DD_ini_growth]
         ans = odeint(self.compute_primes_MG, Y_ini_growth, a_arr)
@@ -112,10 +114,12 @@ class GreenFunction(object):
 
     def D_DD_minus_MG_num(self, a):
         """Solve for decay mode"""
-        a_ini = 1e-2
+        a_ini = 1e-7
+        if a < a_ini:
+            print('Need to decrease a_ini from ', a_ini, ' to below ', a)
         D_ini_decay = a_ini**(-1.5)
         DD_ini_decay = -1.5*a_ini**(-2.5)
-        a_points = 100
+        a_points = 2 #100
         a_arr = np.linspace(a_ini, a, a_points)
         Y_ini_decay = [D_ini_decay, DD_ini_decay]
         ans = odeint(self.compute_primes_MG, Y_ini_decay, a_arr)
@@ -173,6 +177,7 @@ class GreenFunction(object):
 
     # second order coefficients
     def I1d(self, ai, a):
+        #print(ai, a, (self.G1d(a,ai)*self.fplus(ai) + self.G2d(a,ai)*self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a))
         if self.MG: return (self.G1d(a,ai)*self.fplus(ai) + self.G2d(a,ai)*self.mu2(ai)*(1.5*self.Omega_m(ai))**2/self.fplus(ai))*self.D(ai)**2/self.D(a)**2 / self.C(a)
         else: return self.fplus(ai)*self.D(ai)**2*self.G1d(a,ai)/self.D(a)**2 / self.C(a)
     def I2d(self, ai, a):
