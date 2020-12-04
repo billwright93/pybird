@@ -10,22 +10,22 @@ from projection import Projection
 from angular import Angular
 from greenfunction import GreenFunction
 
-import importlib, sys
-importlib.reload(sys.modules['common'])
-importlib.reload(sys.modules['bird'])
-importlib.reload(sys.modules['nonlinear'])
-importlib.reload(sys.modules['resum'])
-importlib.reload(sys.modules['projection'])
-importlib.reload(sys.modules['angular'])
-importlib.reload(sys.modules['greenfunction'])
+# import importlib, sys
+# importlib.reload(sys.modules['common'])
+# importlib.reload(sys.modules['bird'])
+# importlib.reload(sys.modules['nonlinear'])
+# importlib.reload(sys.modules['resum'])
+# importlib.reload(sys.modules['projection'])
+# importlib.reload(sys.modules['angular'])
+# importlib.reload(sys.modules['greenfunction'])
 
-from common import Common, co
-from bird import Bird
-from nonlinear import NonLinear
-from resum import Resum
-from projection import Projection
-from angular import Angular
-from greenfunction import GreenFunction
+# from common import Common, co
+# from bird import Bird
+# from nonlinear import NonLinear
+# from resum import Resum
+# from projection import Projection
+# from angular import Angular
+# from greenfunction import GreenFunction
 
 class Correlator(object):
 
@@ -170,8 +170,8 @@ class Correlator(object):
             "with_nlo_bias": Option("with_nlo_bias", bool,
                 description="With next-to-leading bias.",
                 default=False) ,
-            "with_assembly_bias": Option("with_assembly_bias", bool,
-                description="With assembly bias.",
+            "with_tidal_alignments": Option("with_tidal_alignments", bool,
+                description="With tidal alignements: bq * (\mu^2 - 1/3) \delta_m ",
                 default=False) ,
             "with_quintessence": Option("with_quintessence", bool,
                 description="Clustering quintessence. Automatically set \'with_exact_time\' to True.",
@@ -185,6 +185,12 @@ class Correlator(object):
             "Omega_rc": Option("Omega_rc", float,
                 description="nDGP parameter",
                 default=None) , #set default?
+            "w_integrator": Option("w_integrator", str,
+                description="Type of integration for \'output\': \'w\' : \'trapz\', \'cuba\' or \'fast\'. \'fast\' is tuned for DESY1 precision.",
+                default='cuba') ,
+            "w_theta_cut": Option("w_theta_cut", (float, list, np.ndarray),
+                description="Angle cut for \'output\': \'w\'. ",
+                default=0) ,
         }
 
         if config_dict is not None: self.set(config_dict, load_engines=load_engines)
@@ -233,13 +239,17 @@ class Correlator(object):
 
     def compute(self, cosmo_dict, module=None):
 
-        if module is 'class': cosmo_dict = self.setcosmo(cosmo_dict, module='class')
-
-        self.__read_cosmo(cosmo_dict)
+        cosmo_dict_local = cosmo_dict.copy()
+        
+        if module is 'class': 
+            cosmo_dict_class = self.setcosmo(cosmo_dict, module='class')
+            cosmo_dict_local.update(cosmo_dict_class)
+        
+        self.__read_cosmo(cosmo_dict_local)
         self.__is_cosmo_conflict()
 
         if self.config["skycut"] == 1:
-            self.bird = Bird(self.cosmo, with_bias=self.config["with_bias"], with_stoch=self.config["with_stoch"], with_nlo_bias=self.config["with_nlo_bias"], with_assembly_bias=self.config["with_assembly_bias"], co=self.co)
+            self.bird = Bird(self.cosmo, with_bias=self.config["with_bias"], with_stoch=self.config["with_stoch"], with_nlo_bias=self.config["with_nlo_bias"], co=self.co)
             self.nonlinear.PsCf(self.bird)
             if self.config["with_bias"]: self.bird.setPsCf(self.bias)
             else: self.bird.setPsCfl()
@@ -265,7 +275,7 @@ class Correlator(object):
                 if self.config["with_AP"] and not self.config["with_redshift_bin"]:
                     cosmoi["DA"] = self.cosmo["DA"][0]
                     cosmoi["H"] = self.cosmo["H"][0]
-                self.bird = Bird(cosmoi, with_bias=False, with_stoch=self.config["with_stoch"], with_nlo_bias=self.config["with_nlo_bias"], with_assembly_bias=self.config["with_assembly_bias"], co=self.co)
+                self.bird = Bird(cosmoi, with_bias=False, with_stoch=self.config["with_stoch"], with_nlo_bias=self.config["with_nlo_bias"], co=self.co)
                 self.nonlinear.PsCf(self.bird)
                 self.bird.setPsCfl()
                 if self.config["with_resum"]:
@@ -294,7 +304,7 @@ class Correlator(object):
                         cosmoi["H"] = self.cosmo["H"][i]
 
                     if i == zbins[0]:
-                        self.bird = Bird(cosmoi, with_bias=False, with_stoch=self.config["with_stoch"], with_nlo_bias=self.config["with_nlo_bias"], with_assembly_bias=self.config["with_assembly_bias"], co=self.co)
+                        self.bird = Bird(cosmoi, with_bias=False, with_stoch=self.config["with_stoch"], with_nlo_bias=self.config["with_nlo_bias"], co=self.co)
                         self.nonlinear.PsCf(self.bird)
                         self.bird.setPsCfl()
                         if self.config["with_resum"]: self.resum.Ps(self.bird, makeIR=True, makeQ=True, setPs=False)
@@ -314,8 +324,8 @@ class Correlator(object):
                 self.birds = mycycle(self.config["skycut"], first=0, L=self.birds) # cycle back the birds
 
             for i in range(self.config["skycut"]):
-                if "w" in self.config["output"]:
-                    self.angular[i].w(self.birds[i], self.cosmo["Dz"][i], self.cosmo["fz"][i], self.cosmo["rz"][i], self.config["zz"][i], self.config["nz"][i])
+                if "w" in self.config["output"]: 
+                    self.angular[i].w(self.birds[i], self.cosmo["Dz"][i], self.cosmo["fz"][i], self.cosmo["rz"][i], self.config["zz"][i], self.config["nz"][i], which=self.config["w_integrator"], theta_cut=self.config["w_theta_cut"][i])
                 else:
                     if self.config["with_redshift_bin"] and self.config["nz"][i] is not None: self.projection[i].redshift(self.birds[i], self.cosmo["Dz"][i], self.cosmo["fz"][i], self.cosmo["DAz"][i], self.cosmo["Hz"][i])
                     elif self.config["with_AP"]: self.projection[i].AP(self.birds[i])
@@ -461,9 +471,9 @@ class Correlator(object):
             elif "Cf" in self.config["output"]: return [self.birds[i].fullCf for i in range(self.config["skycut"])]
             elif "w" in self.config["output"]: return [self.birds[i].fullw for i in range(self.config["skycut"])]
 
-    def getmarg(self, b1, model=1):
+    def getmarg(self, b1, model=1, bq=0):
 
-        def marg(loop, ct, b1, f1, Pst=None, model=model):
+        def marg(loop, ct, b1, f1, Pst=None, model=model, bq=0):
 
             # if self.config["with_redshift_bin"]: f = 1. #### This is wrong: the redshift integration is with f(z)/f(z_fid) ; f(z_fid) is given in setBias(), not before.
             # else: f = f1
@@ -473,10 +483,11 @@ class Correlator(object):
                 loop = np.swapaxes(loop, axis1=0, axis2=1)
                 ct = np.swapaxes(ct, axis1=0, axis2=1)
                 if Pst is not None: Pst = np.swapaxes(Pst, axis1=0, axis2=1)
-
-            if self.co.Nloop is 12: Pb3 = loop[3] + b1 * loop[7]            # config["with_time"] = True
-            elif self.co.Nloop is 22: Pb3 = f * loop[8] + b1 * loop[16]     # config["with_time"] = False, config["with_exact_time"] = False
-            elif self.co.Nloop is 35: Pb3 = f * loop[18] + b1 * loop[29]    # config["with_time"] = False, config["with_exact_time"] = True
+            
+            if self.co.Nloop is 12: Pb3 = loop[3] + b1 * loop[7]                            # config["with_time"] = True
+            elif self.co.Nloop is 18: Pb3 = loop[3] + b1 * loop[7] + bq * loop[16]          # config["with_time"] = True, config["with_tidal_alignments"] = True
+            elif self.co.Nloop is 22: Pb3 = f * loop[8] + b1 * loop[16]                     # config["with_time"] = False, config["with_exact_time"] = False
+            elif self.co.Nloop is 35: Pb3 = f * loop[18] + b1 * loop[29]                    # config["with_time"] = False, config["with_exact_time"] = True
 
             m = np.array([ Pb3.reshape(-1), 2 * (f * ct[0+3] + b1 * ct[0]).reshape(-1) / self.config["km"]**2 ])
 
@@ -493,13 +504,13 @@ class Correlator(object):
             return m
 
         if self.config["skycut"] == 1:
-            if "Pk" in self.config["output"]: return marg(self.bird.Ploopl, self.bird.Pctl, b1=b1, f1=self.bird.f, Pst=self.bird.Pstl)
-            elif "Cf" in self.config["output"]: return marg(self.bird.Cloopl, self.bird.Cctl, b1=b1, f1=self.bird.f, Pst=self.bird.Cstl)
-            elif "w" in self.config["output"]: return marg(self.bird.wloop, self.bird.wct, b1=b1, f1=self.bird.f)
+            if "Pk" in self.config["output"]: return marg(self.bird.Ploopl, self.bird.Pctl, b1=b1, f1=self.bird.f, Pst=self.bird.Pstl, bq=bq)
+            elif "Cf" in self.config["output"]: return marg(self.bird.Cloopl, self.bird.Cctl, b1=b1, f1=self.bird.f, Pst=self.bird.Cstl, bq=bq)
+            elif "w" in self.config["output"]: return marg(self.bird.wloop, self.bird.wct, b1=b1, f1=self.bird.f, bq=bq)
         elif self.config["skycut"] > 1:
-            if "Pk" in self.config["output"]: return [ marg(self.birds[i].Ploopl, self.birds[i].Pctl, b1=b1[i], f1=self.birds[i].f, Pst=self.birds[i].Pstl) for i in range(self.config["skycut"]) ]
-            elif "Cf" in self.config["output"]: return [ marg(self.birds[i].Cloopl, self.birds[i].Cctl, b1=b1[i], f1=self.birds[i].f, Pst=self.birds[i].Cstl) for i in range(self.config["skycut"]) ]
-            elif "w" in self.config["output"]: return [ marg(self.birds[i].wloop, self.birds[i].wct, b1=b1[i], f1=self.birds[i].f) for i in range(self.config["skycut"]) ]
+            if "Pk" in self.config["output"]: return [ marg(self.birds[i].Ploopl, self.birds[i].Pctl, b1=b1[i], f1=self.birds[i].f, Pst=self.birds[i].Pstl, bq=bq[i]) for i in range(self.config["skycut"]) ]
+            elif "Cf" in self.config["output"]: return [ marg(self.birds[i].Cloopl, self.birds[i].Cctl, b1=b1[i], f1=self.birds[i].f, Pst=self.birds[i].Cstl, bq=bq[i]) for i in range(self.config["skycut"]) ]
+            elif "w" in self.config["output"]: return [ marg(self.birds[i].wloop, self.birds[i].wct, b1=b1[i], f1=self.birds[i].f, bq=bq[i]) for i in range(self.config["skycut"]) ]
 
     def getnlo(self, model=1):
         if self.config["skycut"] == 1:
@@ -518,7 +529,7 @@ class Correlator(object):
         #print('nDGP pybird load:', self.config["with_nDGP"])
         self.co = Common(Nl=self.config["multipole"], kmax=self.config["kmax"], km=self.config["km"], nd=self.config["nd"], halohalo=self.config["halohalo"],
             with_cf=self.config["with_cf"], with_time=self.config["with_time"], optiresum=self.config["optiresum"],
-            exact_time=self.config["with_exact_time"], quintessence=self.config["with_quintessence"], MG=self.config["with_MG"], Omega_rc=self.config["Omega_rc"], nDGP=self.config["with_nDGP"])
+            exact_time=self.config["with_exact_time"], quintessence=self.config["with_quintessence"], MG=self.config["with_MG"], Omega_rc=self.config["Omega_rc"], nDGP=self.config["with_nDGP"], with_tidal_alignments=self.config["with_tidal_alignments"])
 
         if not only_common:
             self.nonlinear = NonLinear(load=True, save=True, co=self.co)
@@ -710,7 +721,7 @@ class Correlator(object):
 
             Nextra = 0
             if self.config["with_nlo_bias"]: Nextra += 1
-            if self.config["with_assembly_bias"]: Nextra += 1
+            if self.config["with_tidal_alignments"]: Nextra += 1
 
             if not self.config["with_stoch"]:
                 if self.config["multipole"] == 0 or "w" in self.config["output"]:
@@ -737,9 +748,9 @@ class Correlator(object):
                 try: self.bias["bnlo"] = self.cosmo["bias"]["bnlo"]
                 except: raise Exception ("Please specify the next-to-leading bias \'bnlo\'.  ")
 
-            if self.config["with_assembly_bias"]:
+            if self.config["with_tidal_alignments"]: 
                 try: self.bias["bq"] = self.cosmo["bias"]["bq"]
-                except: raise Exception ("Please specify the assembly bias \'bq\'.  ")
+                except: raise Exception ("Please specify the tidal alignments bias \'bq\'.  ")
 
     def __read_config(self, config_dict):
 
@@ -792,8 +803,11 @@ class Correlator(object):
                     self.config["with_time"] = True
                     #self.config["z"] = self.config["z"][0]
                 else: self.config["with_time"] = False
+            elif "w" in self.config["output"]:
+                if isinstance(self.config["w_theta_cut"], (float, int)): self.config["w_theta_cut"] = self.config["w_theta_cut"] * np.ones(shape=(self.config["skycut"]))
 
-
+                
+        
         if self.config["xdata"] is None:
             raise Exception("Please specify a data point array \'xdata\'.")
         if len(self.config["xdata"]) == 1 and isinstance(self.config["xdata"][0], (list, np.ndarray)):
@@ -863,8 +877,8 @@ class Correlator(object):
             elif self.config["skycut"] > 1:
                 self.config["zz"] = np.asarray(self.config["zz"])
                 self.config["nz"] = np.asarray(self.config["nz"])
-                print (len(self.config["zz"]), len(self.config["nz"]))
-                if len(self.config["zz"]) == self.config["skycut"] and len(self.config["nz"]) == self.config["skycut"]:
+                # print (len(self.config["zz"]), len(self.config["nz"]))
+                if len(self.config["zz"]) == self.config["skycut"] and len(self.config["nz"]) == self.config["skycut"]: 
                     for zz, nz in zip(self.config["zz"], self.config["nz"]): is_conflict_zz(zz, nz)
                 else:
                     raise Exception("Please provide as many \'nz\' with corresponding \'zz\' (in a list) as the corresponding skycuts. ")
@@ -895,8 +909,11 @@ class Correlator(object):
                     zmax = max(self.config["zz"][maxbin])
                 else: zmax = max(self.config["z"])
 
+            cosmo_dict_local = cosmo_dict.copy()
+            if self.config["with_bias"]: del cosmo_dict_local["bias"] # Class does not like dictionary with keys other than the ones it reads...
+
             M = Class()
-            M.set(cosmo_dict)
+            M.set(cosmo_dict_local)
             M.set({'output': 'mPk', 'P_k_max_h/Mpc': 1.0, 'z_max_pk': zmax })
             M.compute()
 
@@ -968,6 +985,17 @@ class Correlator(object):
                 cosmo["P11"] *= Dq**2 / Dm**2 * ( 1 + (1+w)/(1.-3*w) * (1-Omega0_m)/Omega0_m * (1+zm)**(3*w) ) # 1611.07966 eq. (4.15)
 
             return cosmo
+
+
+
+
+class BiasCorrelator(Correlator): 
+    '''
+    Class to load pre-computed correlator
+    '''
+    def __init__(self, config_dict=None, load_engines=False):
+        Correlator.__init__(self, config_dict, load_engines=load_engines)
+
 
 
 
