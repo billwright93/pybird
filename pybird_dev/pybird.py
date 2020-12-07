@@ -956,9 +956,9 @@ class Correlator(object):
                 elif self.config["skycut"] > 1: cosmo["rz"] = np.array([ [comoving_distance(z) for z in zz] for zz in self.config["zz"] ])
             
             if self.config["with_nDGP"]:
-                k_MGCAMB = np.loadtxt('Ben/mgcamb/matterpower_z0.dat')[:,0]
-                P_lin_MGCAMB = np.loadtxt('Ben/mgcamb/matterpower_z0.dat')[:,1]
-                PlinB =interpolate.interp1d(k_MGCAMB,P_lin_MGCAMB,kind = 'cubic')
+                #k_MGCAMB = np.loadtxt('Ben/mgcamb/matterpower_z0.dat')[:,0]
+                #P_lin_MGCAMB = np.loadtxt('Ben/mgcamb/matterpower_z0.dat')[:,1]
+                #PlinB =interpolate.interp1d(k_MGCAMB,P_lin_MGCAMB,kind = 'cubic')
                 zm = 14 # z in matter domination
                 def scale_factor(z): return 1/(1.+z)
                 Omega0_m = cosmo["Omega0_m"]
@@ -967,9 +967,9 @@ class Correlator(object):
                 Dp = GF.D(scale_factor(zfid))/GF.D(scale_factor(zm))
                 Dm = GF.Dminus(scale_factor(zfid))/GF.Dminus(scale_factor(zm)) #needed?
                 D_class = M.scale_independent_growth_factor(zfid) / M.scale_independent_growth_factor(zm)
-                #cosmo["P11"] *= Dp**2 / D_class**2 #GF.D(scale_factor(zfid))**2/M.scale_independent_growth_factor(zfid)**2 #
-                cosmo["k11"] = k_MGCAMB
-                cosmo["P11"] = PlinB(cosmo["k11"]) * (Dp**2 / D_class**2)
+                cosmo["P11"] *= Dp**2 / D_class**2 #GF.D(scale_factor(zfid))**2/M.scale_independent_growth_factor(zfid)**2 #
+                #cosmo["k11"] = k_MGCAMB
+                #cosmo["P11"] = PlinB(cosmo["k11"]) * (Dp**2 / D_class**2)
                 cosmo["D"] = GF.D(scale_factor(zfid))/GF.D(scale_factor(0))
                 if self.config["multipole"] is not 0: cosmo["f"] = GF.fplus(scale_factor(zfid))
                 
