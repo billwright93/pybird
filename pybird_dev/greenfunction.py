@@ -23,22 +23,22 @@ class GreenFunction(object):
         if Omega_rc is not None: #should be elif since don't want both wcDM and nDGP?
             #print('Omega_rc specified, turning on nDGP if you have not done so already!')
             self.Omega_rc = Omega_rc
-            if MG:
+            '''if MG:
                 if nDGP: print('Omega_rc specified, nDGP and MG selected -- good job!')
                 else: print('Omega_rc specified and MG selected, but nDGP not selected -- uh oh!\nTurning on nDGP automatically.')
             else:
                 if nDGP: print('Omega_rc specified and nDGP selected, but MG not selected -- uh oh!\nTurning on MG automatically.')
-                else: print('Omega_rc specified, but neither nDGP and MG selected -- not good!\nTurning on both MG and nDGP automatically.')
+                else: print('Omega_rc specified, but neither nDGP and MG selected -- not good!\nTurning on both MG and nDGP automatically.')'''
             self.nDGP = True
             self.MG = True #needed?
-        else:
+        '''else:
             if MG:
                 print('nDGP GF:', nDGP)
                 if nDGP: print('nDGP and MG selected, but Omega_rc not specified -- not good!')
                 else: print('MG selected, but nDGP not selected and Omega_rc not specified -- currently nDGP is the only MG model in PyBird!')
             else:
                 if nDGP: print('nDGP selected, but MG not selected and Omega_rc not specified -- uh oh!')
-                else: print('No modified gravity stuff specified or selected -- that is fine!')
+                else: print('No modified gravity stuff specified or selected -- that is fine!')'''
         '''elif Omega_rc is None and nDGP==True:
             print('nDGP selected but Omega_rc not specified!\nTurning off MG and nDGP.')
             self.MG = False
@@ -139,8 +139,8 @@ class GreenFunction(object):
         xin = -7.
         xfin = +7.
         xpoints = 1000
-        if a < np.e**xin:
-            print('Need to decrease a_ini from ', np.e**xin, ' to below ', a)
+        #if a < np.e**xin:
+        #    print('Need to decrease a_ini from ', np.e**xin, ' to below ', a)
         delta_x = (xfin - xin)/xpoints
         xss = np.arange(xin,xfin,delta_x) # x's for the growth mode solution
         xss_inv = xss[::-1] # inverted a's for the decay mode solution
@@ -164,8 +164,8 @@ class GreenFunction(object):
         xin = -7.
         xfin = +7.
         xpoints = 1000
-        if a < np.e**xin:
-            print('Need to decrease a_ini from ', np.e**xin, ' to below ', a)
+        #if a < np.e**xin:
+        #    print('Need to decrease a_ini from ', np.e**xin, ' to below ', a)
         delta_x = (xfin - xin)/xpoints
         xss = np.arange(xin,xfin,delta_x) # x's for the growth mode solution
         xss_inv = xss[::-1] # inverted a's for the decay mode solution
