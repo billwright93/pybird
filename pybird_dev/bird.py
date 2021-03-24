@@ -198,7 +198,7 @@ class Bird(object):
             else: self.G1 = 1.
             #if self.co.nDGP:
             #    self.f = GF.fplus(self.a)
-            print('QE:', self.co.quintessence, ' MG:', self.co.MG, ' nDGP:', self.co.nDGP, self.G1, self.f)
+            #print('QE:', self.co.quintessence, ' MG:', self.co.MG, ' nDGP:', self.co.nDGP, self.G1, self.f)
             # print (self.Y1, self.G1t, self.V12t, self.G1, self.f, GF.fplus(self.a))
             # except:
             #     print ("setting EdS time approximation")
